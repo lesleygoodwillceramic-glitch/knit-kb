@@ -1412,7 +1412,7 @@ async function extractKnowledge() {
       // text-only: add system prompt
       body.system = '你是 Knit People 的客服知识库专家，专注于中国企业出海 EOR、Payroll、签证、猎头、公司注册和合同工管理服务。';
     }
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('/api/claude', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
@@ -1463,7 +1463,7 @@ async function doAsk(q) {
   rd.innerHTML = '<div class="qa-result"><span class="loading">正在检索知识库...</span></div>';
   const ctx = kb.slice(0, 20).map(e => `[${e.cat}][${e.country}]\nQ: ${e.q}\nA: ${e.a}`).join('\n\n');
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetch('/api/claude', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         model:'claude-sonnet-4-20250514', max_tokens:1000,
