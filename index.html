@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knit People · 客服知识库</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root {
+    --bg: #0e0f0e;
+    --bg2: #161714;
+    --bg3: #1d1e1b;
+    --bg4: #252621;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #e8e6df;
+    --text2: #9a9890;
+    --text3: #5c5b57;
+    --accent: #b8f0d4;
+    --accent2: #1a6645;
+    --accent3: #0d3d29;
+    --gold: #f0d4a0;
+    --gold2: #8a6e3a;
+    --lavender: #c8c0f0;
+    --lavender2: #4a4080;
+    --coral: #f0b8a8;
+    --coral2: #7a3a28;
+    --sky: #a8d0f0;
+    --sky2: #2a4e6a;
+    --radius: 10px;
+    --radius2: 6px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* LAYOUT */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-mark {
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .logo-mark span { color: var(--accent); }
+
+  .logo-sub {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 3px;
+    font-family: var(--mono);
+    letter-spacing: 0.04em;
+  }
+
+  .sidebar-nav {
+    padding: 12px 10px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .nav-section {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    padding: 8px 10px 6px;
+    text-transform: uppercase;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius2);
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13px;
+    transition: all 0.15s;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--accent3); color: var(--accent); }
+
+  .nav-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .nav-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text3);
+    background: var(--bg4);
+    padding: 1px 6px;
+    border-radius: 10px;
+  }
+
+  .nav-item.active .nav-badge { background: var(--accent2); color: var(--accent); }
+
+  .sidebar-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text3);
+    font-family: var(--mono);
+  }
+
+  /* MAIN CONTENT */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .topbar {
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg);
+  }
+
+  .topbar-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .topbar-sub {
+    font-size: 12px;
+    color: var(--text3);
+    margin-left: auto;
+    font-family: var(--mono);
+  }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+  }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* FORM ELEMENTS */
+  label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 5px; }
+
+  select, input[type=text] {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: var(--radius2);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  select:focus, input[type=text]:focus { border-color: var(--accent2); }
+
+  textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: var(--radius2);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: var(--font);
+    line-height: 1.7;
+    resize: vertical;
+    min-height: 140px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  textarea:focus { border-color: var(--accent2); }
+
+  .form-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .form-group { display: flex; flex-direction: column; }
+
+  /* BUTTONS */
+  .btn {
+    padding: 9px 18px;
+    border-radius: var(--radius2);
+    font-size: 13px;
+    font-family: var(--font);
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-accent {
+    background: var(--accent);
+    color: #0a2018;
+  }
+  .btn-accent:hover { background: #d0f8e4; }
+  .btn-accent:active { transform: scale(0.98); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* RESULT BOX */
+  .result-box {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius2);
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-family: var(--mono);
+    min-height: 80px;
+  }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+
+  .stat-num { font-size: 24px; font-weight: 300; color: var(--accent); letter-spacing: -0.02em; }
+  .stat-label { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+
+  /* FILTER CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+
+  .chip {
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text2);
+    background: transparent;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .chip:hover { border-color: var(--accent2); color: var(--text); }
+  .chip.active { background: var(--accent3); border-color: var(--accent2); color: var(--accent); }
+
+  /* KNOWLEDGE ENTRIES */
+  .kb-entry {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+  }
+  .kb-entry:hover { border-color: var(--border2); }
+
+  .entry-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+
+  .entry-q { font-size: 14px; font-weight: 500; color: var(--text); flex: 1; line-height: 1.4; }
+
+  .entry-body {
+    font-size: 12.5px;
+    color: var(--text2);
+    line-height: 1.7;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 4px;
+    white-space: pre-wrap;
+  }
+
+  .entry-footer {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .entry-meta { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-left: auto; }
+
+  /* TAGS */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--mono);
+    white-space: nowrap;
+  }
+  .tag-eor { background: #0d3d29; color: var(--accent); }
+  .tag-payroll { background: #152a3d; color: var(--sky); }
+  .tag-visa { background: #1e1840; color: var(--lavender); }
+  .tag-recruit { background: #3a2c10; color: var(--gold); }
+  .tag-entity { background: #3a1810; color: var(--coral); }
+  .tag-contractor { background: #2a1830; color: #d0b0e8; }
+  .tag-general { background: var(--bg4); color: var(--text2); }
+
+  /* QA */
+  .qa-result {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+
+  .qa-result strong { color: var(--accent); font-weight: 500; }
+
+  .quick-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* GUIDE */
+  .guide-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .guide-step:last-child { border-bottom: none; }
+
+  .step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent3);
+    border: 1px solid var(--accent2);
+    color: var(--accent);
+    font-size: 12px;
+    font-family: var(--mono);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .step-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .step-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+  .code-pill {
+    display: inline-block;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--gold);
+  }
+
+  /* SEARCH HEADER */
+  .search-wrap { display: flex; gap: 8px; margin-bottom: 14px; }
+  .search-wrap input { flex: 1; }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text3);
+    font-size: 13px;
+    font-family: var(--mono);
+  }
+
+  /* LOADING */
+  @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+  .loading { animation: pulse 1.4s ease-in-out infinite; color: var(--accent); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: var(--accent);
+    color: #0a2018;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* INLINE DELETE */
+  .edit-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text3);
+    font-size: 11px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.15s;
+  }
+  .edit-btn:hover { border-color: var(--accent2); color: var(--accent); background: var(--accent3); }
+
+  .del-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text3);
+    font-size: 11px;
+    padding: 3px 7px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--mono);
+    transition: all 0.15s;
+  }
+  .del-btn:hover { border-color: #7a2020; color: #f09595; background: #2a0f0f; }
+
+  /* COLLAPSIBLE REGIONS */
+  .region-header {
+    display: flex;
+    align-items: center;
+    padding: 7px 10px;
+    margin-top: 4px;
+    cursor: pointer;
+    user-select: none;
+    border-radius: var(--radius2);
+    transition: background 0.15s;
+  }
+  .region-header:hover { background: var(--bg3); }
+  .region-label {
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--text3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .region-arrow {
+    font-size: 9px;
+    color: var(--text3);
+    transition: transform 0.2s;
+    margin-left: 4px;
+  }
+  .region-arrow.open { transform: rotate(90deg); }
+  .region-body {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease;
+  }
+  .region-body.open { max-height: 2000px; }
+
+  /* INPUT TABS */
+  .input-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+  .input-tab {
+    padding: 6px 14px; border-radius: var(--radius2); font-size: 12px;
+    font-family: var(--font); cursor: pointer; border: 1px solid var(--border2);
+    background: transparent; color: var(--text2); transition: all 0.15s;
+  }
+  .input-tab:hover { background: var(--bg3); color: var(--text); }
+  .input-tab.active { background: var(--accent3); border-color: var(--accent2); color: var(--accent); }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--bg3);
+    margin-bottom: 12px;
+  }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent2); background: var(--accent3); }
+  .upload-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.5; }
+  .upload-text { font-size: 14px; color: var(--text); font-weight: 500; margin-bottom: 5px; }
+  .upload-sub { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+
+  .file-info {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; background: var(--accent3);
+    border: 1px solid var(--accent2); border-radius: var(--radius2);
+    font-size: 13px; color: var(--accent); margin-bottom: 10px;
+  }
+  .file-text-preview {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius2); padding: 12px 14px;
+    font-size: 12px; color: var(--text2); font-family: var(--mono);
+    max-height: 140px; overflow-y: auto; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-all;
+  }
+
+  /* FILE LIST */
+  .file-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .file-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: var(--radius2);
+    font-size: 12px;
+  }
+  .file-item-icon { font-size: 16px; flex-shrink: 0; }
+  .file-item-name { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-item-status { font-family: var(--mono); font-size: 11px; white-space: nowrap; }
+  .file-item-status.ok { color: var(--accent); }
+  .file-item-status.err { color: #f09595; }
+  .file-item-status.pending { color: var(--text3); }
+  .file-item-remove { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; }
+  .file-item-remove:hover { color: #f09595; }
+  .progress-bar { height: 2px; background: var(--border); border-radius: 1px; margin-top: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 1px; transition: width 0.3s; }
+
+  /* ACTIONS ROW */
+  .actions { display: flex; gap: 8px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">Knit <span>People</span></div>
+      <div class="logo-sub">客服知识库 v1.0</div>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <div class="nav-section">工作台</div>
+      <button class="nav-item active" onclick="switchPanel('extract', this)">
+        <span class="nav-icon">✦</span> 录入知识
+      </button>
+      <button class="nav-item" onclick="switchPanel('search', this)">
+        <span class="nav-icon">◎</span> 智能问答
+      </button>
+      <div class="nav-section" style="margin-top:8px;">知识库</div>
+      <button class="nav-item" onclick="switchPanel('browse', this)">
+        <span class="nav-icon">≡</span> 浏览全部
+        <span class="nav-badge" id="nav-count">0</span>
+      </button>
+      <button class="nav-item" onclick="switchPanel('browse', this, '通用')">
+        <span class="nav-icon">🌐</span> 通用
+      </button>
+      <div id="region-nav"></div>
+      <div class="nav-section" style="margin-top:8px;">帮助</div>
+      <button class="nav-item" onclick="switchPanel('guide', this)">
+        <span class="nav-icon">?</span> 建库指南
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      EOR · Payroll · Visa · Entity
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="topbar-title">录入知识条目</span>
+      <span class="topbar-sub" id="topbar-sub">粘贴原始内容，AI 自动提炼</span>
+    </div>
+    <div class="content">
+
+      <!-- EXTRACT PANEL -->
+      <div class="panel active" id="panel-extract">
+        <div class="card">
+          <div class="card-title">来源信息</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>内容来源</label>
+              <select id="src-type">
+                <option value="企业微信">企业微信（客户）</option>
+                <option value="Outlook">Outlook 邮件</option>
+                <option value="Zendesk内部">Zendesk 内部工单</option>
+                <option value="Zendesk外部">Zendesk 外部工单</option>
+                <option value="团队消息">团队内部消息</option>
+                <option value="上传文件">上传文件</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>业务分类</label>
+              <select id="src-cat">
+                <option value="EOR雇主合规">EOR 雇主合规</option>
+                <option value="Payroll薪资">Payroll 薪资</option>
+                <option value="签证与工作许可">签证与工作许可</option>
+                <option value="猎头与招聘">猎头与招聘</option>
+                <option value="公司注册">公司注册</option>
+                <option value="合同工管理">合同工管理</option>
+                <option value="客户关系">客户关系</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>目标国家</label>
+              <select id="src-country"></select>
+            </div>
+          </div>
+
+          <!-- Input mode tabs -->
+          <div class="input-tabs">
+            <button class="input-tab active" id="tab-text" onclick="switchInputTab('text')">✎ 粘贴文本</button>
+            <button class="input-tab" id="tab-file" onclick="switchInputTab('file')">⬆ 上传文件</button>
+          </div>
+
+          <!-- Text mode -->
+          <div id="input-text-mode">
+            <div class="form-group" style="margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;">
+                <label style="margin-bottom:0;">原始内容（聊天记录 / 邮件 / 工单原文）</label>
+                <span id="char-counter" style="font-size:11px;font-family:var(--mono);color:var(--text3);">0 / 10,000</span>
+              </div>
+              <textarea id="raw-content" oninput="updateCharCount()" placeholder="直接粘贴原始对话或文本。例如：
+
+客户（HR负责人）：我们想在德国雇一名工程师，但我们在德国没有实体，怎么操作？
+CS：您好，可以通过 EOR 方式，Knit 作为当地法律雇主..."></textarea>
+              <div id="char-warning" style="display:none;margin-top:6px;padding:7px 12px;background:#2a0f0f;border:1px solid #7a2020;border-radius:var(--radius2);font-size:12px;color:#f09595;">
+                ⚠ 内容超过 10,000 字符，可能导致请求失败。建议按国家或章节拆分后分批录入。
+              </div>
+            </div>
+          </div>
+
+          <!-- File upload mode -->
+          <div id="input-file-mode" style="display:none;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:7px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius2);">
+              <span style="font-size:13px;">⚠</span>
+              <span style="font-size:12px;color:var(--text2);">单次上传文字内容建议 <strong style="color:var(--text);">不超过 10,000 字符</strong>（约 6–8 页）· 图片每次最多 <strong style="color:var(--text);">5 张</strong> · 超出请按国家/章节拆分</span>
+            </div>
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+              <div class="upload-icon">⬆</div>
+              <div class="upload-text">点击选择或拖入文件</div>
+              <div class="upload-sub">PDF · Word · Excel · CSV · TXT · 图片(JPG/PNG/WEBP/GIF) · ZIP</div>
+              <input type="file" id="file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.jpg,.jpeg,.png,.webp,.gif,.bmp,.tiff,.zip" style="display:none" onchange="handleFileSelect(event)" multiple>
+            </div>
+            <div id="file-preview" style="display:none;">
+              <div class="file-list" id="file-list"></div>
+              <div id="file-size-warning" style="display:none;margin-top:6px;padding:7px 12px;background:#2a0f0f;border:1px solid #7a2020;border-radius:var(--radius2);font-size:12px;color:#f09595;">
+                ⚠ 文件总内容超过 10,000 字符，建议拆分后分批上传，否则可能请求失败。
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-accent" onclick="extractKnowledge()">
+              ✦ AI 提炼知识条目
+            </button>
+            <span style="font-size:12px; color:var(--text3);" id="extract-hint">AI 自动识别问题、标准答案和注意事项</span>
+          </div>
+        </div>
+
+        <div id="extract-result" style="display:none;">
+          <div class="card">
+            <div class="card-title">提炼结果</div>
+            <div class="result-box" id="result-content"></div>
+            <div class="actions">
+              <button class="btn btn-accent" onclick="saveToKB()">存入知识库 →</button>
+              <button class="btn btn-ghost btn-sm" onclick="clearExtract()">清空重来</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEARCH PANEL -->
+      <div class="panel" id="panel-search">
+        <div class="card">
+          <div class="card-title">智能问答</div>
+          <div class="search-wrap">
+            <input type="text" id="qa-input" placeholder="输入问题，从知识库中检索答案..." onkeydown="if(event.key==='Enter') doAsk(this.value)">
+            <button class="btn btn-accent" onclick="doAsk(document.getElementById('qa-input').value)">提问</button>
+          </div>
+          <div style="margin-top:4px;">
+            <div style="font-size:11px; color:var(--text3); font-family:var(--mono); margin-bottom:8px;">快捷提问</div>
+            <div class="quick-grid">
+              <button class="btn btn-ghost btn-sm" onclick="quickAsk('EOR和自己在当地注册公司有什么区别？什么时候推荐用EOR？')">EOR vs 自建实体</button>
+              <button class="btn btn-ghost btn-sm" onclick="quickAsk('美国Payroll发薪周期和税务怎么处理？')">美国发薪流程</button>
+              <button class="btn btn-ghost btn-sm" onclick="quickAsk('员工需要工作签证，Knit能协助办理吗？流程是怎样的？')">签证办理流程</button>
+              <button class="btn btn-ghost btn-sm" onclick="quickAsk('合同工和通过EOR雇用的全职员工税务上有什么区别？')">合同工 vs 全职</button>
+              <button class="btn btn-ghost btn-sm" onclick="quickAsk('新加坡EP和SP签证有什么区别？')">新加坡 EP/SP</button>
+              <button class="btn btn-ghost btn-sm" onclick="quickAsk('在德国雇用员工需要缴纳哪些社保？')">德国社保缴纳</button>
+            </div>
+          </div>
+        </div>
+        <div id="qa-result"></div>
+      </div>
+
+      <!-- BROWSE PANEL -->
+      <div class="panel" id="panel-browse">
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">知识条目</div></div>
+          <div class="stat"><div class="stat-num" id="stat-countries">0</div><div class="stat-label">覆盖国家</div></div>
+          <div class="stat"><div class="stat-num" id="stat-cats">0</div><div class="stat-label">业务分类</div></div>
+          <div class="stat"><div class="stat-num" id="stat-sources">0</div><div class="stat-label">来源</div></div>
+        </div>
+        <div id="country-chips" style="margin-bottom:16px;"></div>
+        <div id="kb-list"></div>
+      </div>
+
+      <!-- GUIDE PANEL -->
+      <div class="panel" id="panel-guide">
+        <div class="card">
+          <div class="card-title">建库优先级</div>
+          <div class="guide-step">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-title">EOR 核心问题（最高频）</div>
+              <div class="step-desc">EOR vs 自建实体的区别、法律雇主责任归属、各国入职时间线、社保缴纳比例、合规要求。这是客户最常问的问题，优先整理。</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-title">Payroll 各国规则</div>
+              <div class="step-desc">发薪周期（美国双周、英国月付等）、税务代扣、工资单格式、年终奖发放规则。可按国家分批整理。</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-title">签证与工作许可</div>
+              <div class="step-desc">主要目标国（美英新德日）工作签证类型、办理周期、材料清单、薪资门槛、常见被拒原因。</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">4</div>
+            <div>
+              <div class="step-title">合规风险话术</div>
+              <div class="step-desc">假雇用风险 (Misclassification)、各国解雇保护法、合同条款差异。这类问题客户不常问但很重要。</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">5</div>
+            <div>
+              <div class="step-title">公司注册 / 猎头</div>
+              <div class="step-desc">各国注册时间和成本、猎头费率和搜寻周期、常见服务流程。</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">从哪里收集内容</div>
+          <div class="guide-step">
+            <div class="step-num">📱</div>
+            <div>
+              <div class="step-title">企业微信</div>
+              <div class="step-desc">搜索关键词：<span class="code-pill">EOR</span> <span class="code-pill">社保</span> <span class="code-pill">工作签证</span> <span class="code-pill">发薪</span> <span class="code-pill">入职</span>。把客户问题+你的回复一起粘贴进来。</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">📧</div>
+            <div>
+              <div class="step-title">Outlook 邮件</div>
+              <div class="step-desc">重点筛选供应商回复中含解释性内容的邮件，和你向客户发送的说明邮件。</div>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="step-num">🎫</div>
+            <div>
+              <div class="step-title">Zendesk 工单</div>
+              <div class="step-desc">导出已解决的工单，按业务分类批量粘贴。优先处理标记为"高频"或"复杂"的工单。</div>
+            </div>
+          </div>
+          <div class="guide-step" style="border-bottom:none;">
+            <div class="step-num">💬</div>
+            <div>
+              <div class="step-title">团队内部消息</div>
+              <div class="step-desc">收集同事总结的经验性话术、注意事项，以及内部讨论中形成的处理标准。</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">分享给团队</div>
+          <div style="font-size:13px; color:var(--text2); line-height:1.8;">
+            这个文件（<span class="code-pill">knit-people-kb.html</span>）可以直接发给团队成员：<br>
+            · 发送到企业微信群 / 邮件附件<br>
+            · 上传到公司共享网盘（如腾讯文档、飞书云盘）<br>
+            · 每人在自己浏览器中打开，数据独立存储<br><br>
+            <span style="color:var(--text3); font-size:12px;">注意：每人的浏览器数据独立，暂不支持多人实时同步。如需团队共享数据，可联系技术人员部署后端版本。</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:24px;width:min(600px,92vw);max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <span style="font-size:14px;font-weight:500;color:var(--text);">编辑知识条目</span>
+      <button onclick="closeEdit()" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <input type="hidden" id="edit-id">
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px;">问题标题</label>
+      <input type="text" id="edit-q" style="width:100%;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px;">内容（标准答案 / 注意事项）</label>
+      <textarea id="edit-a" style="min-height:200px;width:100%;"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+      <div>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px;">业务分类</label>
+        <select id="edit-cat">
+          <option value="EOR雇主合规">EOR 雇主合规</option>
+          <option value="Payroll薪资">Payroll 薪资</option>
+          <option value="签证与工作许可">签证与工作许可</option>
+          <option value="猎头与招聘">猎头与招聘</option>
+          <option value="公司注册">公司注册</option>
+          <option value="合同工管理">合同工管理</option>
+          <option value="客户关系">客户关系</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:5px;">国家 / 地区</label>
+        <select id="edit-country" style="max-width:180px;"></select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-accent" onclick="saveEdit()">保存修改</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeEdit()">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'knit_kb_v1';
+
+const REGIONS = [
+  { id: 'apac', label: '🌏 亚太', open: true, countries: [
+    ['🇨🇳','中国大陆'], ['🇭🇰','中国香港'], ['🇲🇴','中国澳门'], ['🇹🇼','中国台湾'],
+    ['🇯🇵','日本'], ['🇰🇷','韩国'], ['🇸🇬','新加坡'], ['🇦🇺','澳大利亚'],
+    ['🇳🇿','新西兰'], ['🇮🇳','印度'], ['🇮🇩','印度尼西亚'], ['🇲🇾','马来西亚'],
+    ['🇹🇭','泰国'], ['🇻🇳','越南'], ['🇵🇭','菲律宾'], ['🇧🇩','孟加拉国'],
+    ['🇵🇰','巴基斯坦'], ['🇱🇰','斯里兰卡'], ['🇳🇵','尼泊尔'], ['🇲🇲','缅甸'],
+    ['🇰🇭','柬埔寨'], ['🇱🇦','老挝'], ['🇲🇳','蒙古'], ['🇰🇿','哈萨克斯坦'],
+    ['🇺🇿','乌兹别克斯坦'], ['🇦🇿','阿塞拜疆'], ['🇬🇪','格鲁吉亚'], ['🇦🇲','亚美尼亚'],
+    ['🇧🇳','文莱'], ['🇹🇱','东帝汶']
+  ]},
+  { id: 'europe', label: '🌍 欧洲', open: false, countries: [
+    ['🇬🇧','英国'], ['🇩🇪','德国'], ['🇫🇷','法国'], ['🇳🇱','荷兰'],
+    ['🇪🇸','西班牙'], ['🇮🇹','意大利'], ['🇸🇪','瑞典'], ['🇳🇴','挪威'],
+    ['🇩🇰','丹麦'], ['🇫🇮','芬兰'], ['🇨🇭','瑞士'], ['🇦🇹','奥地利'],
+    ['🇧🇪','比利时'], ['🇮🇪','爱尔兰'], ['🇵🇹','葡萄牙'], ['🇵🇱','波兰'],
+    ['🇨🇿','捷克'], ['🇸🇰','斯洛伐克'], ['🇭🇺','匈牙利'], ['🇷🇴','罗马尼亚'],
+    ['🇧🇬','保加利亚'], ['🇭🇷','克罗地亚'], ['🇸🇮','斯洛文尼亚'], ['🇷🇸','塞尔维亚'],
+    ['🇺🇦','乌克兰'], ['🇬🇷','希腊'], ['🇱🇹','立陶宛'], ['🇱🇻','拉脱维亚'],
+    ['🇪🇪','爱沙尼亚'], ['🇱🇺','卢森堡'], ['🇮🇸','冰岛'], ['🇲🇹','马耳他'],
+    ['🇨🇾','塞浦路斯'], ['🇦🇱','阿尔巴尼亚'], ['🇧🇦','波黑'], ['🇲🇰','北马其顿'],
+    ['🇲🇩','摩尔多瓦'], ['🇧🇾','白俄罗斯'], ['🇷🇺','俄罗斯']
+  ]},
+  { id: 'americas', label: '🌎 美洲', open: false, countries: [
+    ['🇺🇸','美国'], ['🇨🇦','加拿大'], ['🇲🇽','墨西哥'],
+    ['🇧🇷','巴西'], ['🇦🇷','阿根廷'], ['🇨🇱','智利'], ['🇨🇴','哥伦比亚'],
+    ['🇵🇪','秘鲁'], ['🇻🇪','委内瑞拉'], ['🇪🇨','厄瓜多尔'], ['🇧🇴','玻利维亚'],
+    ['🇵🇾','巴拉圭'], ['🇺🇾','乌拉圭'], ['🇨🇷','哥斯达黎加'], ['🇬🇹','危地马拉'],
+    ['🇵🇦','巴拿马'], ['🇩🇴','多米尼加'], ['🇨🇺','古巴'], ['🇯🇲','牙买加'],
+    ['🇹🇹','特立尼达和多巴哥'], ['🇧🇧','巴巴多斯'], ['🇭🇳','洪都拉斯'],
+    ['🇸🇻','萨尔瓦多'], ['🇳🇮','尼加拉瓜'], ['🇵🇷','波多黎各']
+  ]},
+  { id: 'mideast', label: '🕌 中东', open: false, countries: [
+    ['🇦🇪','阿联酋'], ['🇸🇦','沙特阿拉伯'], ['🇮🇱','以色列'], ['🇶🇦','卡塔尔'],
+    ['🇰🇼','科威特'], ['🇧🇭','巴林'], ['🇴🇲','阿曼'], ['🇯🇴','约旦'],
+    ['🇱🇧','黎巴嫩'], ['🇮🇶','伊拉克'], ['🇮🇷','伊朗'], ['🇹🇷','土耳其'],
+    ['🇾🇪','也门'], ['🇸🇾','叙利亚']
+  ]},
+  { id: 'africa', label: '🌍 非洲', open: false, countries: [
+    ['🇿🇦','南非'], ['🇳🇬','尼日利亚'], ['🇪🇬','埃及'], ['🇰🇪','肯尼亚'],
+    ['🇬🇭','加纳'], ['🇪🇹','埃塞俄比亚'], ['🇹🇿','坦桑尼亚'], ['🇺🇬','乌干达'],
+    ['🇷🇼','卢旺达'], ['🇸🇳','塞内加尔'], ['🇨🇮','科特迪瓦'], ['🇲🇦','摩洛哥'],
+    ['🇩🇿','阿尔及利亚'], ['🇹🇳','突尼斯'], ['🇱🇾','利比亚'], ['🇸🇩','苏丹'],
+    ['🇦🇴','安哥拉'], ['🇿🇲','赞比亚'], ['🇿🇼','津巴布韦'], ['🇲🇿','莫桑比克'],
+    ['🇨🇲','喀麦隆'], ['🇨🇩','刚果（金）'], ['🇲🇬','马达加斯加'], ['🇲🇺','毛里求斯'],
+    ['🇧🇼','博茨瓦纳'], ['🇳🇦','纳米比亚']
+  ]}
+];
+
+function buildRegionNav() {
+  const el = document.getElementById('region-nav');
+  el.innerHTML = REGIONS.map(r => `
+    <div class="region-wrap">
+      <div class="region-header" onclick="toggleRegion('${r.id}')">
+        <span class="region-label">${r.label}</span>
+        <span class="region-arrow ${r.open ? 'open' : ''}" id="arrow-${r.id}">▶</span>
+      </div>
+      <div class="region-body ${r.open ? 'open' : ''}" id="body-${r.id}">
+        ${r.countries.map(([flag, name]) =>
+          `<button class="nav-item" onclick="navToCountry('${name}', this)">
+            <span class="nav-icon">${flag}</span> ${name}
+          </button>`
+        ).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleRegion(id) {
+  const body = document.getElementById('body-' + id);
+  const arrow = document.getElementById('arrow-' + id);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+
+function navToCountry(country, btn) {
+  switchPanel('browse', btn, country);
+}
+
+
+const CAT_TAG = {
+  'EOR雇主合规':'tag-eor eor', 'Payroll薪资':'tag-payroll pay',
+  '签证与工作许可':'tag-visa vis', '猎头与招聘':'tag-recruit rec',
+  '公司注册':'tag-entity ent', '合同工管理':'tag-contractor con',
+  '客户关系':'tag-general gen'
+};
+const CAT_SHORT = {
+  'EOR雇主合规':'EOR', 'Payroll薪资':'Payroll',
+  '签证与工作许可':'签证', '猎头与招聘':'猎头',
+  '公司注册':'注册', '合同工管理':'合同工', '客户关系':'通用'
+};
+
+const TOPBAR = {
+  extract: ['录入知识条目', '粘贴原始内容，AI 自动提炼'],
+  search: ['智能问答', '向知识库提问，获取操作指引'],
+  browse: ['知识库', '浏览和管理所有知识条目'],
+  guide: ['建库指南', '如何高效建立知识库']
+};
+
+let kb = [];
+let currentFilter = 'all';
+
+function loadKB() {
+  try { kb = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { kb = []; }
+  if (!kb.length) {
+    kb = [
+      { id:1, q:"EOR和在当地注册实体有什么区别，什么情况下用EOR更合适？", a:"【问题】：EOR vs 自建实体的区别与适用场景\n【标准答案】：\n1. EOR（雇主记录）：Knit 作为当地法律雇主代为雇用，客户保留日常管理权。\n2. 适合 EOR：尚未决定长期扎根、快速入职（1-2周）、员工人数少（5人以下）、规避本地合规风险。\n3. 适合自建实体：长期大规模运营（10人以上）、有本地品牌需求、需要本地资质或许可证。\n【注意事项】：需向客户说明 EOR 下合同由 Knit 与员工签署，客户仍保留工作指导权，但法律雇主责任由 Knit 承担。", cat:"EOR雇主合规", country:"通用", source:"团队消息", date:"2024-03-01" },
+      { id:2, q:"美国 Payroll 发薪周期和税务如何处理？", a:"【问题】：美国薪资发放流程\n【标准答案】：\n1. 常见发薪周期：双周（Bi-weekly，最常见）或半月（Semi-monthly）。\n2. Knit 负责：计算联邦/州所得税、FICA（社保+医保各7.65%）、提交941表、发放工资单（Pay Stub）。\n3. 客户需提前3个工作日确认薪资数据。\n【注意事项】：各州税率不同，加州有额外 SDI；需提前告知员工所在州以确认税率。", cat:"Payroll薪资", country:"美国", source:"Zendesk内部", date:"2024-02-15" },
+      { id:3, q:"英国工作签证（Skilled Worker Visa）Knit 能协助办理吗？需要多久？", a:"【问题】：英国工签办理流程与周期\n【标准答案】：\n1. Knit 可协助办理，需确认 Sponsor Licence 状态。\n2. 流程：客户提供岗位信息 → 确认 CoS（Certificate of Sponsorship）→ 员工提交签证申请。\n3. 标准周期 4-8 周，加急服务 2-3 周。\n【注意事项】：2024年起多数岗位薪资门槛≥38,700英镑/年，需提前核实岗位是否达标。以上数字请内部核实。", cat:"签证与工作许可", country:"英国", source:"Outlook", date:"2024-03-10" },
+      { id:4, q:"新加坡 EP（Employment Pass）和 SP（S Pass）的区别？", a:"【问题】：新加坡工签类型选择\n【标准答案】：\n1. EP（Employment Pass）：适用于专业/管理人员，月薪≥5,000 SGD（科技行业≥5,500），无配额限制，审批约3-8周。\n2. SP（S Pass）：适用于中层技术人员，月薪≥3,000 SGD，受企业外籍员工比例配额限制（制造业15%、服务业10%）。\n【注意事项】：中国外派高管/工程师通常申请EP；本地招聘中层技术岗通常为SP。配额紧张时需提前规划。薪资门槛数字请内部核实。", cat:"签证与工作许可", country:"新加坡", source:"企业微信", date:"2024-01-20" },
+      { id:5, q:"合同工（Contractor）和通过 EOR 雇用的全职员工，税务和合规风险有什么区别？", a:"【问题】：合同工 vs EOR 全职员工\n【标准答案】：\n1. 合同工：员工自行报税，Knit/客户不代扣代缴；灵活但存在「假雇用」（Misclassification）风险。\n2. EOR 全职：Knit 代扣代缴所有税务，雇主法律风险由 Knit 承担，成本更高但更安全。\n3. 风险提示：若合同工被认定为实际雇员关系，客户须补缴税款及罚款，部分国家（英国IR35）有专项法规。\n【注意事项】：长期合作、专职工作、有固定工时建议走 EOR；短期项目制可考虑合同工，但需评估当地认定标准。", cat:"合同工管理", country:"通用", source:"Zendesk外部", date:"2024-02-28" }
+    ];
+    saveKB();
+  }
+  updateStats();
+}
+
+function saveKB() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(kb));
+  updateStats();
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = kb.length;
+  document.getElementById('nav-count').textContent = kb.length;
+  const countries = new Set(kb.map(e => e.country).filter(c => c !== '通用'));
+  document.getElementById('stat-countries').textContent = countries.size;
+  const cats = new Set(kb.map(e => e.cat));
+  document.getElementById('stat-cats').textContent = cats.size;
+  const sources = new Set(kb.map(e => e.source));
+  document.getElementById('stat-sources').textContent = sources.size;
+}
+
+function switchPanel(name, btn, forceFilter) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('topbar-title').textContent = TOPBAR[name][0];
+  document.getElementById('topbar-sub').textContent = TOPBAR[name][1];
+  if (name === 'browse') {
+    if (forceFilter) {
+      currentFilter = forceFilter;
+    }
+    renderKB();
+  }
+}
+
+function renderKB() {
+  const list = document.getElementById('kb-list');
+  const items = currentFilter === 'all' ? kb : kb.filter(e => e.country === currentFilter);
+
+  // Dynamic chips from countries in KB
+  const allCountries = ['通用', ...Array.from(new Set(kb.map(e => e.country).filter(c => c !== '通用'))).sort()];
+  const chipsEl = document.getElementById('country-chips');
+  if (chipsEl) {
+    const allBtn = `<button class="chip ${currentFilter==='all'?'active':''}" onclick="filterCountry('all',this)">全部</button>`;
+    const cBtns = allCountries.map(c =>
+      `<button class="chip ${currentFilter===c?'active':''}" onclick="filterCountry('${c}',this)">${c}</button>`
+    ).join('');
+    chipsEl.innerHTML = `<div class="chips">${allBtn}${cBtns}</div>`;
+  }
+
+  if (!items.length) {
+    list.innerHTML = `<div class="empty">该国家暂无知识条目<br><span style="font-size:11px;opacity:0.6;">请先在「录入知识」中选择对应国家并添加内容</span></div>`;
+    return;
+  }
+  list.innerHTML = items.map(e => {
+    const tagCls = (CAT_TAG[e.cat] || 'tag-general').split(' ')[0];
+    const tagShort = CAT_SHORT[e.cat] || e.cat;
+    return `<div class="kb-entry" id="entry-${e.id}">
+      <div class="entry-header">
+        <span class="tag ${tagCls}">${tagShort}</span>
+        <div class="entry-q">${escHtml(e.q)}</div>
+        <span style="font-size:11px;color:var(--text3);white-space:nowrap;font-family:var(--mono);">${e.country}</span>
+      </div>
+      <div class="entry-body">${escHtml(e.a)}</div>
+      <div class="entry-footer">
+        <div class="entry-meta">${e.source} · ${e.date}</div>
+        <button class="edit-btn" onclick="openEdit(${e.id})">编辑</button>
+        <button class="del-btn" onclick="deleteEntry(${e.id})">删除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterCountry(country) {
+  currentFilter = country;
+  renderKB();
+}
+
+function deleteEntry(id) {
+  if (!confirm('确认删除这条知识条目？')) return;
+  kb = kb.filter(e => e.id !== id);
+  saveKB();
+  renderKB();
+  showToast('已删除');
+}
+
+// ── EDIT MODAL ──────────────────────────────────────────────
+function openEdit(id) {
+  const entry = kb.find(e => e.id === id);
+  if (!entry) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-q').value = entry.q;
+  document.getElementById('edit-a').value = entry.a;
+  document.getElementById('edit-cat').value = entry.cat;
+  document.getElementById('edit-country').value = entry.country;
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+
+function closeEdit() {
+  document.getElementById('edit-modal').style.display = 'none';
+}
+
+function saveEdit() {
+  const id = parseInt(document.getElementById('edit-id').value);
+  const idx = kb.findIndex(e => e.id === id);
+  if (idx === -1) return;
+  kb[idx].q = document.getElementById('edit-q').value.trim();
+  kb[idx].a = document.getElementById('edit-a').value.trim();
+  kb[idx].cat = document.getElementById('edit-cat').value;
+  kb[idx].country = document.getElementById('edit-country').value;
+  saveKB();
+  renderKB();
+  closeEdit();
+  showToast('已保存修改 ✓');
+}
+
+
+const CHAR_LIMIT = 10000;
+
+function updateCharCount() {
+  const ta = document.getElementById('raw-content');
+  const n = ta.value.length;
+  const counter = document.getElementById('char-counter');
+  const warning = document.getElementById('char-warning');
+  counter.textContent = `${n.toLocaleString()} / 10,000`;
+  const over = n > CHAR_LIMIT;
+  counter.style.color = over ? '#f09595' : n > CHAR_LIMIT * 0.8 ? '#f0d4a0' : 'var(--text3)';
+  warning.style.display = over ? '' : 'none';
+}
+
+
+let uploadedFiles = []; // [{name, type, text, b64, isImage}]
+
+const FILE_ICONS = {
+  pdf:'📄', docx:'📝', doc:'📝', xlsx:'📊', xls:'📊', csv:'📊',
+  txt:'📃', jpg:'🖼', jpeg:'🖼', png:'🖼', webp:'🖼', gif:'🖼',
+  bmp:'🖼', tiff:'🖼', tif:'🖼', zip:'🗜'
+};
+
+function getExt(name) { return name.split('.').pop().toLowerCase(); }
+
+function switchInputTab(mode) {
+  document.getElementById('input-text-mode').style.display = mode === 'text' ? '' : 'none';
+  document.getElementById('input-file-mode').style.display = mode === 'file' ? '' : 'none';
+  document.getElementById('tab-text').classList.toggle('active', mode === 'text');
+  document.getElementById('tab-file').classList.toggle('active', mode === 'file');
+}
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('dragover'); }
+function handleDragLeave(e) { document.getElementById('upload-zone').classList.remove('dragover'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  processFiles([...e.dataTransfer.files]);
+}
+function handleFileSelect(e) { processFiles([...e.target.files]); e.target.value = ''; }
+
+async function processFiles(files) {
+  for (const file of files) {
+    const ext = getExt(file.name);
+    if (ext === 'zip') {
+      await processZip(file);
+    } else {
+      await processSingleFile(file);
+    }
+  }
+  renderFileList();
+}
+
+async function processSingleFile(file) {
+  const ext = getExt(file.name);
+  const entry = { name: file.name, type: ext, text: '', b64: '', isImage: false, status: 'pending', err: '' };
+  uploadedFiles.push(entry);
+  renderFileList();
+
+  try {
+    const isImg = ['jpg','jpeg','png','webp','gif','bmp','tiff','tif'].includes(ext);
+    if (isImg) {
+      entry.b64 = await fileToBase64(file);
+      entry.isImage = true;
+      entry.mimeType = file.type || `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+      entry.status = 'ok';
+    } else if (ext === 'pdf') {
+      entry.text = await extractPDF(file);
+      entry.status = 'ok';
+    } else if (ext === 'docx' || ext === 'doc') {
+      entry.text = await extractWord(file);
+      entry.status = 'ok';
+    } else if (ext === 'xlsx' || ext === 'xls') {
+      entry.text = await extractExcel(file);
+      entry.status = 'ok';
+    } else if (ext === 'csv') {
+      entry.text = await file.text();
+      entry.status = 'ok';
+    } else if (ext === 'txt') {
+      entry.text = await file.text();
+      entry.status = 'ok';
+    } else {
+      entry.status = 'err'; entry.err = '不支持的格式';
+    }
+  } catch (e) {
+    entry.status = 'err'; entry.err = e.message || '解析失败';
+  }
+  renderFileList();
+}
+
+async function processZip(zipFile) {
+  const zipEntry = { name: zipFile.name, type: 'zip', text: '', isImage: false, status: 'pending', err: '', isZip: true, children: [] };
+  uploadedFiles.push(zipEntry);
+  renderFileList();
+  try {
+    const zip = await JSZip.loadAsync(zipFile);
+    const supported = ['pdf','docx','doc','xlsx','xls','csv','txt','jpg','jpeg','png','webp','gif','bmp'];
+    const entries = [];
+    zip.forEach((path, entry) => { if (!entry.dir) entries.push({path, entry}); });
+    let processed = 0;
+    for (const {path, entry} of entries) {
+      const ext = getExt(path);
+      if (!supported.includes(ext)) continue;
+      try {
+        const blob = await entry.async('blob');
+        const file = new File([blob], path.split('/').pop(), { type: blob.type });
+        const child = { name: path, type: ext, text: '', b64: '', isImage: false, status: 'pending', err: '' };
+        zipEntry.children.push(child);
+        const isImg = ['jpg','jpeg','png','webp','gif','bmp'].includes(ext);
+        if (isImg) {
+          child.b64 = await fileToBase64(file);
+          child.isImage = true;
+          child.mimeType = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+          child.status = 'ok';
+        } else if (ext === 'pdf') { child.text = await extractPDF(file); child.status = 'ok'; }
+        else if (ext === 'docx' || ext === 'doc') { child.text = await extractWord(file); child.status = 'ok'; }
+        else if (ext === 'xlsx' || ext === 'xls') { child.text = await extractExcel(file); child.status = 'ok'; }
+        else if (ext === 'csv' || ext === 'txt') { child.text = await file.text(); child.status = 'ok'; }
+      } catch(e) { /* skip failed */ }
+      processed++;
+      zipEntry.err = `已解析 ${processed}/${entries.filter(x => supported.includes(getExt(x.path))).length} 个文件`;
+      renderFileList();
+    }
+    zipEntry.status = 'ok';
+    zipEntry.err = `共 ${zipEntry.children.length} 个可用文件`;
+  } catch(e) { zipEntry.status = 'err'; zipEntry.err = 'ZIP 解压失败'; }
+  renderFileList();
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+async function extractPDF(file) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js 未加载');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  let text = '';
+  for (let i = 1; i <= Math.min(pdf.numPages, 30); i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(s => s.str).join(' ') + '\n';
+  }
+  if (!text.trim()) throw new Error('PDF 无可提取文字（可能是扫描件，请转为图片上传）');
+  return text.trim();
+}
+
+async function extractWord(file) {
+  if (typeof mammoth === 'undefined') throw new Error('Mammoth.js 未加载');
+  const ab = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: ab });
+  return result.value.trim();
+}
+
+async function extractExcel(file) {
+  if (typeof XLSX === 'undefined') throw new Error('XLSX.js 未加载');
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab, { type: 'array' });
+  let text = '';
+  wb.SheetNames.forEach(name => {
+    const ws = wb.Sheets[name];
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    if (csv.trim()) text += `[Sheet: ${name}]\n${csv}\n\n`;
+  });
+  return text.trim();
+}
+
+function removeFile(idx) {
+  uploadedFiles.splice(idx, 1);
+  renderFileList();
+}
+
+function renderFileList() {
+  const fp = document.getElementById('file-preview');
+  const fl = document.getElementById('file-list');
+  if (!uploadedFiles.length) { fp.style.display = 'none'; return; }
+  fp.style.display = '';
+  fl.innerHTML = uploadedFiles.map((f, i) => {
+    const icon = FILE_ICONS[f.type] || '📎';
+    const statusClass = f.status;
+    const statusText = f.status === 'ok' ? (f.isZip ? f.err : f.isImage ? '图片已就绪' : `${(f.text||'').length} 字符`) :
+                       f.status === 'err' ? `✗ ${f.err}` : '⋯ 处理中';
+    const children = f.children && f.children.length ?
+      `<div style="padding:4px 0 0 28px;font-size:11px;color:var(--text3);font-family:var(--mono);">` +
+      f.children.map(c => `${FILE_ICONS[c.type]||'📎'} ${c.name.split('/').pop()} ${c.status==='ok'?'✓':''}`).join('  ') +
+      `</div>` : '';
+    return `<div class="file-item" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="file-item-icon">${icon}</span>
+        <span class="file-item-name" title="${f.name}">${f.name}</span>
+        <span class="file-item-status ${statusClass}">${statusText}</span>
+        <button class="file-item-remove" onclick="removeFile(${i})">×</button>
+      </div>
+      ${children}
+    </div>`;
+  }).join('');
+
+  // Total char size warning
+  const totalChars = uploadedFiles.reduce((sum, f) => {
+    if (f.isZip && f.children) return sum + f.children.reduce((s, c) => s + (c.text||'').length, 0);
+    return sum + (f.isImage ? 0 : (f.text||'').length);
+  }, 0);
+  const sizeWarn = document.getElementById('file-size-warning');
+  if (sizeWarn) {
+    const over = totalChars > CHAR_LIMIT;
+    sizeWarn.style.display = over ? '' : 'none';
+    if (over) sizeWarn.textContent = `⚠ 文件总内容 ${totalChars.toLocaleString()} 字符，超过 10,000 字符上限，建议按国家/章节拆分后分批上传。`;
+  }
+}
+async function extractKnowledge() {
+  const cat = document.getElementById('src-cat').value;
+  const src = document.getElementById('src-type').value;
+  const country = document.getElementById('src-country').value;
+  const rd = document.getElementById('extract-result');
+  const rc = document.getElementById('result-content');
+
+  const isFileMode = document.getElementById('tab-file').classList.contains('active');
+  let messages = [];
+
+  if (isFileMode) {
+    // Collect all content from uploaded files
+    if (!uploadedFiles.length) { showToast('请先上传文件'); return; }
+    const readyFiles = uploadedFiles.filter(f => f.status === 'ok');
+    if (!readyFiles.length) { showToast('文件尚未处理完成，请稍候'); return; }
+
+    // Flatten zip children
+    const allItems = [];
+    readyFiles.forEach(f => {
+      if (f.isZip && f.children) { f.children.filter(c => c.status==='ok').forEach(c => allItems.push(c)); }
+      else allItems.push(f);
+    });
+
+    // Build message content blocks
+    const contentBlocks = [];
+    let totalText = '';
+    for (const item of allItems) {
+      if (item.isImage) {
+        if (contentBlocks.length < 10) { // API limit
+          contentBlocks.push({ type: 'image', source: { type: 'base64', media_type: item.mimeType, data: item.b64 } });
+          contentBlocks.push({ type: 'text', text: `[图片文件: ${item.name}]` });
+        }
+      } else if (item.text) {
+        totalText += `\n\n[文件: ${item.name}]\n${item.text.slice(0, 8000)}`;
+      }
+    }
+    if (totalText) contentBlocks.push({ type: 'text', text: totalText });
+    contentBlocks.push({ type: 'text', text: `\n\n请从以上文件内容（来源：${src}，业务：${cat}，国家：${country}）中提炼1-3条标准知识条目。\n\n每条格式：\n【问题】：（≤30字）\n【标准答案】：（分步骤，专业）\n【注意事项】：（合规风险/注意事项）\n\n保留 EOR/Payroll 等专业术语，具体数字注明"请内部核实"。` });
+    messages = [{ role: 'user', content: contentBlocks }];
+
+  } else {
+    const raw = document.getElementById('raw-content').value.trim();
+    if (!raw) { showToast('请先粘贴原始内容'); return; }
+    messages = [{ role: 'user', content: `你是 Knit People 的客服知识库专家。Knit People 是专注于中国企业出海的 EOR、Payroll、签证、猎头、公司注册和合同工管理服务公司。\n\n请从以下原始内容（来源：${src}，业务：${cat}，国家：${country}）中提炼1-2条标准知识条目。\n\n每条严格按以下格式输出：\n【问题】：（简洁概括，≤30字）\n【标准答案】：（分步骤，含关键数字/时间/比例，专业且易懂）\n【注意事项】：（合规风险、常见误区、需确认的信息）\n\n要求：\n- 保留 EOR/Payroll/CoS/Misclassification 等专业术语（英文）\n- 去除口语化表达\n- 如有具体数字（税率/薪资门槛等），注明"请内部核实"\n- 多条用空行分隔\n\n原始内容：\n${raw}` }];
+  }
+
+  rd.style.display = 'block';
+  rc.innerHTML = '<span class="loading">AI 正在分析内容，提炼知识条目...</span>';
+
+  try {
+    const body = { model: 'claude-sonnet-4-20250514', max_tokens: 1500, messages };
+    if (!isFileMode || !uploadedFiles.some(f => f.isImage || (f.children && f.children.some(c => c.isImage)))) {
+      // text-only: add system prompt
+      body.system = '你是 Knit People 的客服知识库专家，专注于中国企业出海 EOR、Payroll、签证、猎头、公司注册和合同工管理服务。';
+    }
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    const text = data.content?.map(c => c.text || '').join('') || '提炼失败，请重试';
+    rc.textContent = text;
+    rc.dataset.raw = text;
+    rc.dataset.cat = cat;
+    rc.dataset.src = isFileMode ? `文件上传(${uploadedFiles.map(f=>f.name).join(',')})` : src;
+    rc.dataset.country = country;
+  } catch (e) { rc.textContent = '网络错误，请重试：' + e.message; }
+}
+
+function saveToKB() {
+  const rc = document.getElementById('result-content');
+  const text = rc.dataset.raw || rc.textContent;
+  if (!text || text.includes('请重试')) { showToast('没有可保存的内容'); return; }
+  const cat = rc.dataset.cat || '客户关系';
+  const src = rc.dataset.src || '手动录入';
+  const country = rc.dataset.country || '通用';
+  const lines = text.split('\n');
+  let q = '知识条目 ' + (kb.length + 1);
+  for (const l of lines) {
+    if (l.includes('【问题】')) { q = l.replace(/【问题】[：:]\s*/,'').trim(); break; }
+  }
+  kb.unshift({ id: Date.now(), q, a: text, cat, country, source: src, date: new Date().toISOString().slice(0,10) });
+  saveKB();
+  showToast('已存入知识库 ✓');
+  clearExtract();
+}
+
+function clearExtract() {
+  document.getElementById('extract-result').style.display = 'none';
+  document.getElementById('raw-content').value = '';
+  document.getElementById('result-content').textContent = '';
+  uploadedFiles = [];
+  renderFileList();
+}
+
+async function quickAsk(q) {
+  document.getElementById('qa-input').value = q;
+  await doAsk(q);
+}
+
+async function doAsk(q) {
+  if (!q.trim()) return;
+  const rd = document.getElementById('qa-result');
+  rd.innerHTML = '<div class="qa-result"><span class="loading">正在检索知识库...</span></div>';
+  const ctx = kb.slice(0, 20).map(e => `[${e.cat}][${e.country}]\nQ: ${e.q}\nA: ${e.a}`).join('\n\n');
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        messages:[{ role:'user', content:`你是 Knit People 的客服助手。Knit People 提供 EOR、Payroll、签证、猎头、公司注册、合同工管理服务，专注服务中国企业出海雇用海外员工。
+
+根据以下知识库回答问题。优先引用知识库内容；如没有，给出专业通用建议并注明「建议内部确认」。
+
+知识库：
+${ctx || '（暂无条目）'}
+
+问题：${q}
+
+回答格式（用 markdown 加粗标题）：
+**解答：**
+（具体操作建议，分步骤）
+
+**参考依据：**
+（引用了哪条知识库条目，或「通用行业知识」）
+
+**风险提示：**
+（需注意的合规风险或需客户确认的信息）` }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.map(c=>c.text||'').join('') || '查询失败';
+    rd.innerHTML = `<div class="qa-result">${mdToHtml(text)}</div>`;
+  } catch(e) { rd.innerHTML = '<div class="qa-result" style="color:var(--text3)">网络错误，请重试</div>'; }
+}
+
+function mdToHtml(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// 115 countries sorted by international English name (displayed in Chinese)
+const ALL_COUNTRIES = [
+  ['🇦🇫','阿富汗'],['🇦🇱','阿尔巴尼亚'],['🇩🇿','阿尔及利亚'],['🇦🇩','安道尔'],['🇦🇴','安哥拉'],
+  ['🇦🇷','阿根廷'],['🇦🇲','亚美尼亚'],['🇦🇺','澳大利亚'],['🇦🇹','奥地利'],['🇦🇿','阿塞拜疆'],
+  ['🇧🇭','巴林'],['🇧🇩','孟加拉国'],['🇧🇧','巴巴多斯'],['🇧🇾','白俄罗斯'],['🇧🇪','比利时'],
+  ['🇧🇴','玻利维亚'],['🇧🇦','波黑'],['🇧🇼','博茨瓦纳'],['🇧🇷','巴西'],['🇧🇳','文莱'],
+  ['🇧🇬','保加利亚'],['🇨🇲','喀麦隆'],['🇨🇦','加拿大'],['🇨🇱','智利'],['🇨🇳','中国大陆'],
+  ['🇭🇰','中国香港'],['🇲🇴','中国澳门'],['🇹🇼','中国台湾'],['🇨🇴','哥伦比亚'],['🇨🇩','刚果（金）'],
+  ['🇨🇷','哥斯达黎加'],['🇭🇷','克罗地亚'],['🇨🇺','古巴'],['🇨🇾','塞浦路斯'],['🇨🇿','捷克'],
+  ['🇩🇰','丹麦'],['🇩🇴','多米尼加'],['🇪🇨','厄瓜多尔'],['🇪🇬','埃及'],['🇸🇻','萨尔瓦多'],
+  ['🇪🇪','爱沙尼亚'],['🇪🇹','埃塞俄比亚'],['🇫🇮','芬兰'],['🇫🇷','法国'],['🇬🇪','格鲁吉亚'],
+  ['🇩🇪','德国'],['🇬🇭','加纳'],['🇬🇷','希腊'],['🇬🇹','危地马拉'],['🇭🇳','洪都拉斯'],
+  ['🇭🇺','匈牙利'],['🇮🇸','冰岛'],['🇮🇳','印度'],['🇮🇩','印度尼西亚'],['🇮🇷','伊朗'],
+  ['🇮🇶','伊拉克'],['🇮🇪','爱尔兰'],['🇮🇱','以色列'],['🇮🇹','意大利'],['🇯🇲','牙买加'],
+  ['🇯🇵','日本'],['🇯🇴','约旦'],['🇰🇿','哈萨克斯坦'],['🇰🇪','肯尼亚'],['🇰🇼','科威特'],
+  ['🇰🇬','吉尔吉斯斯坦'],['🇱🇦','老挝'],['🇱🇻','拉脱维亚'],['🇱🇧','黎巴嫩'],['🇱🇾','利比亚'],
+  ['🇱🇹','立陶宛'],['🇱🇺','卢森堡'],['🇲🇬','马达加斯加'],['🇲🇾','马来西亚'],['🇲🇹','马耳他'],
+  ['🇲🇺','毛里求斯'],['🇲🇽','墨西哥'],['🇲🇩','摩尔多瓦'],['🇲🇳','蒙古'],['🇲🇦','摩洛哥'],
+  ['🇲🇿','莫桑比克'],['🇲🇲','缅甸'],['🇳🇦','纳米比亚'],['🇳🇵','尼泊尔'],['🇳🇱','荷兰'],
+  ['🇳🇿','新西兰'],['🇳🇮','尼加拉瓜'],['🇳🇬','尼日利亚'],['🇲🇰','北马其顿'],['🇳🇴','挪威'],
+  ['🇴🇲','阿曼'],['🇵🇰','巴基斯坦'],['🇵🇦','巴拿马'],['🇵🇾','巴拉圭'],['🇵🇪','秘鲁'],
+  ['🇵🇭','菲律宾'],['🇵🇱','波兰'],['🇵🇹','葡萄牙'],['🇵🇷','波多黎各'],['🇶🇦','卡塔尔'],
+  ['🇷🇴','罗马尼亚'],['🇷🇺','俄罗斯'],['🇷🇼','卢旺达'],['🇸🇦','沙特阿拉伯'],['🇸🇳','塞内加尔'],
+  ['🇷🇸','塞尔维亚'],['🇸🇬','新加坡'],['🇸🇰','斯洛伐克'],['🇸🇮','斯洛文尼亚'],['🇿🇦','南非'],
+  ['🇰🇷','韩国'],['🇪🇸','西班牙'],['🇱🇰','斯里兰卡'],['🇸🇩','苏丹'],['🇸🇪','瑞典'],
+  ['🇨🇭','瑞士'],['🇸🇾','叙利亚'],['🇹🇿','坦桑尼亚'],['🇹🇭','泰国'],['🇹🇱','东帝汶'],
+  ['🇹🇹','特立尼达和多巴哥'],['🇹🇳','突尼斯'],['🇹🇷','土耳其'],['🇺🇬','乌干达'],
+  ['🇺🇦','乌克兰'],['🇦🇪','阿联酋'],['🇬🇧','英国'],['🇺🇸','美国'],['🇺🇾','乌拉圭'],
+  ['🇺🇿','乌兹别克斯坦'],['🇻🇪','委内瑞拉'],['🇻🇳','越南'],['🇾🇪','也门'],
+  ['🇿🇲','赞比亚'],['🇿🇼','津巴布韦']
+];
+
+function populateCountrySelects() {
+  const opts = ['<option value="通用">🌐 通用</option>',
+    ...ALL_COUNTRIES.map(([f,n]) => `<option value="${n}">${f} ${n}</option>`)
+  ].join('');
+  ['src-country','edit-country'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
+}
+
+loadKB();
+buildRegionNav();
+populateCountrySelects();
+</script>
+</body>
+</html>
